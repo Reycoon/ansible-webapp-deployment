@@ -1,0 +1,39 @@
+---
+# tasks file for backup
+
+
+- name: Check installed MySQL
+  shell: "which mysql"
+  register: mysql_check
+  ignore_errors: true
+  
+- name: Stop run if MySQL isn't installed
+  fail:
+    msg: "MySQL isn't installed"
+  when: mysql_check.rc != 0
+  
+- name: Create folder for my.cnf 
+  file:
+    path: ~/mysql
+    state: directory
+    mode: 0755
+
+- name: Generate my.cnf
+  template: 
+     src: my.j2
+     dest: "~/mysql/my.cnf"
+     mode: 0600
+
+- name: Create backup folder 
+  file:
+    path: ~/mysql/backup
+    state: directory
+    mode: 0755
+    
+- name: Create cron 
+  cron:
+    name: Backup MySQL
+    minute: "0"
+    hour: "9"
+    job: "mysqldump {{ mysql_db_name }} > ~/mysql/backup/database_backup_$(date +\\%F).sql"
+       

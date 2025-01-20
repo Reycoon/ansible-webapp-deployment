@@ -1,0 +1,73 @@
+---
+# tasks file for web_server
+
+- block: #================ Check OS ==============================
+
+    - name: Error
+      debug:
+        msg: "ERROR! Not available OS"
+
+       
+  when: ansible_os_family != "RedHat"
+
+- block: #================ Main block ==============================
+
+     - name: Install Nginx
+       yum: 
+         name: nginx
+         state: latest
+  
+     - name: Start and enable Nginx
+       service:
+         name: nginx
+         state: started
+         enabled: yes
+     
+     - name: Allow http traffic through firewall 
+       command: "{{ item }}"
+       loop: 
+             - firewall-cmd --zone=public --permanent --add-service=http
+             
+             - firewall-cmd --zone=public --permanent --add-service=https
+             
+             - firewall-cmd --reload
+             
+     - name: Create folder for my site
+       file: 
+         path: "{{ dest }}"
+         state: directory
+         owner: nginx
+         group: nginx
+         mode: 0755
+       notify: Restart Nginx
+         
+     - name: Generate index.html
+       template: 
+          src: index.j2
+          dest: "{{ dest }}/index.html"
+          owner: nginx
+          mode: 0644
+       notify: Restart Nginx
+       
+     - name: Copy images to server
+       copy:
+         src: images
+         dest: "{{dest}}"
+         mode: 0755
+       notify: Restart Nginx
+       
+     - name: Copy assets to server
+       copy:
+         src: assets
+         dest: "{{dest}}"
+         mode: 0755
+       notify: Restart Nginx
+     
+     - name: Change path to the site directory
+       replace:
+          path: "{{ config_nginx }}"
+          regexp: 'root\s+ /usr/share/nginx/html'
+          replace: 'root {{ dest }}'
+       notify: Restart Nginx
+       
+  when: ansible_os_family == "RedHat"

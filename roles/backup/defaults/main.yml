@@ -1,0 +1,8 @@
+---
+# defaults file for backup
+
+
+mysql_user_name             :  user
+mysql_user_password         :  qwerty1234567
+mysql_host                  :  localhost
+mysql_db_name               :  db1

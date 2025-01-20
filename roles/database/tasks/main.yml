@@ -1,0 +1,56 @@
+---
+# tasks file for database
+
+
+- block: #================ Check OS ==============================
+
+    - name: Error
+      debug:
+        msg: "ERROR! Not available OS"
+
+       
+  when: ansible_os_family != "RedHat"
+
+- block: #================ Main block ==============================
+
+     - name: Install MySQL
+       yum: 
+         name: mysql-server
+         state: latest
+  
+     - name: Start and enable MySQL
+       service:
+         name: mysqld
+         state: started
+         enabled: yes
+         
+     - name: Install PyMySQL
+       yum: 
+         name: python3-PyMySQL
+         state: latest
+     
+     - name: Create user 
+       mysql_user: 
+         name: "{{ mysql_user_name }}"
+         password: "{{ mysql_user_password }}"
+         priv: "{{ mysq_user_privileges }}"
+         host: "{{ mysql_host }}"
+         
+     - name: Create db 
+       mysql_db: 
+         name: "{{ mysql_db_name }}"
+         login_user: "{{ mysql_user_name }}"
+         login_password: "{{ mysql_user_password }}"
+         
+     - name: Create query 
+       mysql_query: 
+         login_user: "{{ mysql_user_name }}"
+         login_password: "{{ mysql_user_password }}"
+         login_db: "{{ mysql_db_name }}"
+         query: create table customers (customer_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, first_name TEXT, last_name TEXT);
+     
+
+       
+  when: ansible_os_family == "RedHat"
+
+

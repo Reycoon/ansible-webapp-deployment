@@ -1,0 +1,5 @@
+---
+# defaults file for web_server
+
+dest              : /var/www/html/my_site
+config_nginx      : /etc/nginx/nginx.conf
